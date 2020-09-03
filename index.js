@@ -126,6 +126,10 @@ app.put('/tag/:Link/:Title',(req,res)=>{
         if(err!=null) return res.send('please try again some time')
         else{
             if(result.nModified>0){ 
+                bookmarks.updateOne({Link:Link},{$set:{Updation_Time:Date()}},{upsert:true},(err,result)=>{
+                    if(err!=null) return res.send('plaese try again some time') //server error
+                    if(result.nModified>0){
+                
                 var tag=new tags({
                     Title:Title,
                     Updation_Time:Date(),
@@ -145,6 +149,7 @@ app.put('/tag/:Link/:Title',(req,res)=>{
                     }
                     return res.send('document updated sucessfully')
                 })
+            }})
             }
             else{
                 return res.send('document tag already present to bookmark')
@@ -158,8 +163,15 @@ app.delete('/tag/remove/:Link/:Title',(req,res)=>{
     var Link=req.params.Link
     var Title=req.params.Title
     bookmarks.updateOne({Link:Link},{$pull:{Tags:Title}},{upsert:true},(err,result)=>{//removing tag from bookmark
+        console.log(result)
         if(err!=null) return res.send('plaese try again some time') //server error
-        if(result.nModified>0) return res.send('Tag sucessfully removed from bookmark') //tag removal sucessful
+        if(result.nModified>0) {
+            bookmarks.updateOne({Link:Link},{$set:{Updation_Time:Date()}},{upsert:true},(err,result)=>{
+                if(err!=null) return res.send('plaese try again some time') //server error
+                if(result.nModified>0) return res.send('Tag sucessfully removed from bookmark') //tag removal sucessful
+            })
+            
+        }
         else return res.send('Tag is not present on bookmark') //tag not prsent in bookmark
     })
 })
